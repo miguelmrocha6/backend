@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id_cliente    Int       @id @default(autoincrement())
+  nome          String    @db.VarChar(100)
+  email         String    @unique(map: "email") @db.VarChar(100)
+  contato       String?   @db.VarChar(20)
+  ativo         Boolean?  @default(true)
+  criado_em     DateTime? @default(now()) @db.Timestamp(0)
+  atualizado_em DateTime? @default(now()) @db.Timestamp(0)
+  pedidos       Pedido[]
+
+  @@index([nome], map: "idx_nome_cliente")
+  @@map("clientes")
+}
+
+model Entrada {
+  id_entrada     Int          @id @default(autoincrement())
+  id_produto     Int
+  id_fornecedor  Int
+  quantidade     Int
+  valor_unitario Float        @db.Double
+  data_entrada   DateTime?    @db.Date
+  observacao     String?      @db.VarChar(200)
+  criado_em      DateTime?    @default(now()) @db.Timestamp(0)
+  atualizado_em  DateTime?    @default(now()) @db.Timestamp(0)
+  produto        Produto      @relation(fields: [id_produto], references: [id_produto], onUpdate: Cascade, map: "fk_entradas_produtos")
+  fornecedor     Fornecedor   @relation(fields: [id_fornecedor], references: [id_fornecedor], onUpdate: Cascade, map: "fk_entradas_fornecedores")
+
+  @@index([id_produto], map: "fk_entradas_produtos")
+  @@index([id_fornecedor], map: "fk_entradas_fornecedores")
+  @@map("entradas")
+}
+
+model Fornecedor {
+  id_fornecedor Int       @id @default(autoincrement())
+  nome          String    @db.VarChar(100)
+  empresa       String?   @db.VarChar(100)
+  email         String?   @unique(map: "email") @db.VarChar(100)
+  telefone      String?   @db.VarChar(20)
+  cidade        String?   @db.VarChar(50)
+  estado        String?   @db.Char(2)
+  ativo         Boolean?  @default(true)
+  criado_em     DateTime? @default(now()) @db.Timestamp(0)
+  atualizado_em DateTime? @default(now()) @db.Timestamp(0)
+  entradas      Entrada[]
+
+  @@map("fornecedores")
+}
+
+model Funcionario {
+  id_funcionario Int       @id @default(autoincrement())
+  nome           String    @db.VarChar(100)
+  cargo          String    @db.VarChar(50)
+  salario        Float     @db.Double
+  telefone       String?   @db.VarChar(20)
+  email          String?   @db.VarChar(100)
+  data_admissao  DateTime? @db.Date
+  ativo          Boolean?  @default(true)
+  criado_em      DateTime  @default(now()) @db.Timestamp(0)
+  atualizado_em  DateTime  @default(now()) @db.Timestamp(0)
+  saidas         Saida[]
+
+  @@map("funcionarios")
+}
+
+model HistoricoDePrecos {
+  id_historico_de_precos Int       @id @default(autoincrement())
+  id_produto             Int?
+  preco                  Decimal?  @db.Decimal(10, 2)
+  vigencia               DateTime? @db.Date
+  produto                Produto?  @relation(fields: [id_produto], references: [id_produto], map: "historico_de_precos_ibfk_1")
+
+  @@index([id_produto], map: "id_produto")
+  @@map("historico_de_precos")
+}
+
+model Log {
+  id_login       Int       @id @default(autoincrement())
+  usuarios       String?   @db.VarChar(100)
+  tabela_afetada String?   @db.VarChar(100)
+  acao           String?   @db.VarChar(100)
+  registro       Int?
+  data_hora      DateTime? @db.DateTime(0)
+
+  @@map("logs")
+}
+
+model Pedido {
+  id_pedido    Int       @id @default(autoincrement())
+  status       Boolean?  @default(true)
+  data_pedido  DateTime? @db.Date
+  id_cliente   Int?
+  criado_em    DateTime? @default(now()) @db.Timestamp(0)
+  atualizado_em DateTime? @default(now()) @db.Timestamp(0)
+  cliente      Cliente?  @relation(fields: [id_cliente], references: [id_cliente], onDelete: SetNull, onUpdate: Cascade, map: "fk_pedidos_clientes")
+
+  @@index([id_cliente], map: "fk_pedidos_clientes")
+  @@map("pedidos")
+}
+
+model Produto {
+  id_produto      Int                 @id @default(autoincrement())
+  nome            String?             @db.VarChar(100)
+  descricao       String              @db.VarChar(200)
+  preco           Float               @db.Double
+  imagem_produto  String              @db.VarChar(255)
+  criado_em       DateTime?           @default(now()) @db.Timestamp(0)
+  atualizado_em   DateTime?           @default(now()) @db.Timestamp(0)
+  entradas        Entrada[]
+  historico_precos HistoricoDePrecos[]
+  saidas          Saida[]
+
+  @@map("produtos")
+}
+
+model Saida {
+  id_saida       Int         @id @default(autoincrement())
+  id_produto     Int
+  id_funcionario Int
+  quantidade     Int
+  valor_unitario Float       @db.Double
+  data_saida     DateTime?   @db.Date
+  destino        String?     @db.VarChar(100)
+  criado_em      DateTime    @default(now()) @db.Timestamp(0)
+  atualizado_em  DateTime    @default(now()) @db.Timestamp(0)
+  produto        Produto     @relation(fields: [id_produto], references: [id_produto], onUpdate: Cascade, map: "fk_saidas_produtos")
+  funcionario    Funcionario @relation(fields: [id_funcionario], references: [id_funcionario], onUpdate: Cascade, map: "fk_saidas_funcionarios")
+
+  @@index([id_produto], map: "fk_saidas_produtos")
+  @@index([id_funcionario], map: "fk_saidas_funcionarios")
+  @@map("saidas")
+}
+
+model Usuario {
+  id_usu        Int       @id @default(autoincrement())
+  nome          String    @db.VarChar(80)
+  email         String    @unique(map: "email") @db.VarChar(100)
+  senha         String    @db.VarChar(255)
+  contato       String?   @db.VarChar(20)
+  genero        String?   @db.Char(1)
+  ativo         Boolean?  @default(true)
+  criado_em     DateTime? @default(now()) @db.Timestamp(0)
+  atualizado_em DateTime? @default(now()) @db.Timestamp(0)
+
+  @@map("usuarios")
+}
