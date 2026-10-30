@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#142d26">
+  <title>Casa Limpa | Painel de gestão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182b25;
+      --muted: #74817b;
+      --line: #e3e9e4;
+      --canvas: #f3f6f2;
+      --paper: #fff;
+      --forest: #142d26;
+      --forest-soft: #1d4035;
+      --lime: #c3ec73;
+      --lime-soft: #e9f5d6;
+      --orange: #e66c45;
+      --red: #bd4337;
+      --shadow: 0 18px 48px rgb(23 47 39 / 8%);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--canvas); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { display: grid; min-height: 100vh; grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar { display: flex; flex-direction: column; gap: 30px; padding: 27px 17px 18px; color: #f4f8f2; background: var(--forest); }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 9px; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px 12px 12px 3px; color: var(--forest); background: var(--lime); font: 800 17px 'Manrope', sans-serif; }
+    .brand-name { font: 800 16px 'Manrope', sans-serif; letter-spacing: 0; }
+    .brand-sub { margin-top: 2px; color: #a9bbb0; font-size: 11px; }
+    .nav-label { padding: 0 11px; color: #93aa9c; font: 500 10px 'DM Mono', monospace; text-transform: uppercase; }
+    .nav-list { display: grid; gap: 4px; margin-top: -22px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 11px; border: 0; border-radius: 7px; color: #c7d4cb; background: transparent; text-align: left; font-size: 13px; transition: background .16s, color .16s, transform .16s; }
+    .nav-item:hover { color: white; background: rgb(255 255 255 / 8%); transform: translateX(2px); }
+    .nav-item.active { color: var(--forest); background: var(--lime); font-weight: 700; }
+    .nav-glyph { display: grid; width: 20px; height: 20px; place-items: center; font: 500 11px 'DM Mono', monospace; }
+    .sidebar-foot { margin-top: auto; padding: 13px 10px 4px; border-top: 1px solid rgb(255 255 255 / 13%); color: #a9bbb0; font-size: 11px; line-height: 1.6; }
+    .sidebar-foot a { color: var(--lime); text-decoration: none; }
+
+    .main { min-width: 0; padding: 0 34px 40px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 77px; border-bottom: 1px solid var(--line); }
+    .crumb { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .crumb strong { color: var(--ink); font-weight: 700; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .api-field { display: flex; align-items: center; gap: 8px; min-width: 220px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    .api-light { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #91a09a; }
+    .api-light.online { background: #54a961; box-shadow: 0 0 0 3px #54a96120; }
+    .api-field input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font: 11px 'DM Mono', monospace; }
+    .user-chip { display: flex; align-items: center; gap: 8px; padding-left: 9px; border-left: 1px solid var(--line); }
+    .avatar { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 50%; color: var(--forest); background: var(--lime); font: 700 11px 'DM Mono', monospace; }
+    .user-name { max-width: 125px; overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .user-state { color: var(--muted); font-size: 10px; }
+
+    .page-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; padding: 28px 0 22px; animation: appear .38s ease both; }
+    .eyebrow { margin: 0 0 7px; color: var(--orange); font: 500 10px 'DM Mono', monospace; letter-spacing: 0; text-transform: uppercase; }
+    h1 { margin: 0; font: 800 27px 'Manrope', sans-serif; letter-spacing: 0; }
+    .page-desc { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 0 13px; border: 1px solid transparent; border-radius: 6px; font-size: 12px; font-weight: 700; transition: transform .16s, background .16s, border-color .16s; }
+    .button:hover { transform: translateY(-1px); }
+    .button:disabled { cursor: wait; opacity: .55; }
+    .button-primary { color: var(--forest); background: var(--lime); }
+    .button-primary:hover { background: #d3f493; }
+    .button-dark { color: white; background: var(--forest); }
+    .button-dark:hover { background: var(--forest-soft); }
+    .button-quiet { border-color: var(--line); color: var(--ink); background: var(--paper); }
+    .button-quiet:hover { border-color: #9aad9f; }
+    .button-danger { color: var(--red); background: #faeeeb; }
+    .icon-button { display: inline-grid; width: 30px; height: 30px; place-items: center; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: white; }
+    .icon-button:hover { border-color: #9aad9f; }
+    .icon-button.delete { color: var(--red); }
+
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; animation: appear .42s .04s ease both; }
+    .metric { display: flex; align-items: center; justify-content: space-between; min-height: 82px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); }
+    .metric-label { color: var(--muted); font-size: 11px; }
+    .metric-value { margin-top: 5px; font: 700 21px 'Manrope', sans-serif; }
+    .metric-tag { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--forest); background: var(--lime-soft); font: 700 10px 'DM Mono', monospace; }
+
+    .data-panel { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); box-shadow: var(--shadow); animation: appear .46s .08s ease both; }
+    .table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
+    .table-title { font: 700 13px 'Manrope', sans-serif; }
+    .table-subtitle { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .table-controls { display: flex; align-items: center; gap: 8px; }
+    .search { display: flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 5px; }
+    .search input { width: 130px; border: 0; outline: 0; color: var(--ink); font-size: 11px; }
+    .search input::placeholder { color: #99a59e; }
+    .status-line { display: flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 17px; color: var(--muted); font-size: 10px; }
+    .status-line.error { color: var(--red); }
+    .table-wrap { overflow: auto; max-height: calc(100vh - 365px); min-height: 230px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { position: sticky; top: 0; z-index: 1; padding: 11px 14px; color: #77857d; background: #f7f9f6; font: 500 9px 'DM Mono', monospace; letter-spacing: 0; text-transform: uppercase; white-space: nowrap; }
+    td { max-width: 280px; padding: 11px 14px; border-top: 1px solid #edf0ed; font-size: 11px; overflow-wrap: anywhere; }
+    tbody tr:hover { background: #fbfcf9; }
+    .mono { color: #60736a; font: 10px 'DM Mono', monospace; }
+    .state-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 20px; color: #30653d; background: #edf6e9; font-size: 10px; }
+    .state-pill.off { color: #845448; background: #f8eeea; }
+    .row-actions { display: flex; gap: 5px; }
+    .empty { padding: 42px 18px; color: var(--muted); text-align: center; }
+    .empty strong { display: block; margin-bottom: 5px; color: var(--ink); font: 700 13px 'Manrope', sans-serif; }
+    .empty span { font-size: 11px; }
+
+    .login-strip { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: white; }
+    .login-strip input { width: 145px; min-width: 0; padding: 5px 0; border: 0; outline: 0; font-size: 11px; }
+    .login-strip input[type="password"] { width: 105px; }
+    .login-strip .button { min-height: 29px; padding: 0 10px; font-size: 10px; }
+    .login-strip[hidden] { display: none; }
+    .login-trigger { min-height: 32px; }
+
+    dialog { width: min(540px, calc(100% - 28px)); max-height: min(84vh, 760px); padding: 0; border: 0; border-radius: 8px; color: var(--ink); box-shadow: 0 24px 80px rgb(8 27 19 / 25%); }
+    dialog::backdrop { background: rgb(13 31 25 / 48%); backdrop-filter: blur(2px); }
+    .dialog-head { display: flex; align-items: start; justify-content: space-between; padding: 19px 21px 14px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; font: 700 17px 'Manrope', sans-serif; }
+    .dialog-head p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .dialog-close { width: 30px; height: 30px; border: 0; border-radius: 5px; color: var(--muted); background: transparent; font-size: 19px; }
+    .dialog-close:hover { background: var(--canvas); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; max-height: 55vh; overflow-y: auto; padding: 17px 21px; }
+    .field { display: grid; gap: 6px; }
+    .field.wide { grid-column: 1 / -1; }
+    .field label { color: #586860; font: 500 10px 'DM Mono', monospace; }
+    .field input, .field select { width: 100%; height: 37px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; outline: 0; color: var(--ink); background: white; font-size: 12px; }
+    .field input:focus, .field select:focus { border-color: #7d9c85; box-shadow: 0 0 0 3px #b6d59c40; }
+    .field input::placeholder { color: #a6b0aa; }
+    .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 13px 21px 18px; border-top: 1px solid var(--line); }
+    .toast { position: fixed; right: 22px; bottom: 20px; z-index: 10; max-width: min(390px, calc(100% - 40px)); padding: 12px 15px; border: 1px solid #cfe0d3; border-left: 4px solid #5b9b61; border-radius: 5px; color: var(--ink); background: white; box-shadow: var(--shadow); font-size: 12px; animation: appear .2s ease both; }
+    .toast.error { border-color: #eccbc5; border-left-color: var(--red); }
+    .toast[hidden] { display: none; }
+    .mobile-nav { display: none; }
+    @keyframes appear { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1000px) {
+      .shell { grid-template-columns: 205px minmax(0, 1fr); }
+      .sidebar { padding-inline: 12px; }
+      .main { padding-inline: 22px; }
+      .login-strip input { width: 115px; }
+      .login-strip input[type="password"] { width: 85px; }
+    }
+    @media (max-width: 740px) {
+      .shell { display: block; padding-bottom: 63px; }
+      .sidebar { display: none; }
+      .main { padding-inline: 15px; }
+      .topbar { min-height: 61px; }
+      .topbar .crumb { display: none; }
+      .top-actions { gap: 7px; }
+      .api-field { min-width: 0; width: min(45vw, 230px); }
+      .user-chip { padding-left: 7px; }
+      .user-meta { display: none; }
+      .page-head { align-items: start; padding: 23px 0 17px; }
+      h1 { font-size: 22px; }
+      .page-desc { max-width: 240px; line-height: 1.5; }
+      .metrics { gap: 7px; }
+      .metric { min-height: 72px; padding: 11px; }
+      .metric-value { font-size: 18px; }
+      .metric-label { font-size: 9px; }
+      .metric-tag { width: 28px; height: 28px; }
+      .table-toolbar { align-items: start; flex-direction: column; }
+      .table-controls { width: 100%; }
+      .search { flex: 1; }
+      .search input { width: 100%; }
+      .table-wrap { max-height: none; min-height: 210px; }
+      .login-strip { position: fixed; right: 10px; bottom: 70px; left: 10px; z-index: 4; flex-wrap: wrap; box-shadow: var(--shadow); }
+      .login-strip input { width: calc(50% - 12px); }
+      .login-strip input[type="password"] { width: calc(50% - 12px); }
+      .mobile-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 3; display: flex; gap: 3px; overflow-x: auto; padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: white; }
+      .mobile-nav .nav-item { flex: 0 0 auto; flex-direction: column; gap: 2px; width: 65px; padding: 6px 4px; color: var(--muted); font-size: 9px; }
+      .mobile-nav .nav-item.active { color: var(--forest); background: var(--lime-soft); }
+    }
+    @media (max-width: 430px) {
+      .topbar .crumb { display: none; }
+      .api-field { width: 58vw; }
+      .button-primary .button-label { display: none; }
+      .page-head .button { min-width: 42px; padding-inline: 11px; }
+      .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .metric-tag { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.wide { grid-column: auto; }
+      th, td { padding-inline: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">CL</div><div><div class="brand-name">Casa Limpa</div><div class="brand-sub">Painel de operações</div></div></div>
+      <div class="nav-label">Dados do sistema</div>
+      <nav class="nav-list" id="desktop-nav" aria-label="Recursos da API"></nav>
+      <div class="sidebar-foot">Conectado à API local<br><a href="/documentacao">Abrir documentação</a></div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="crumb"><span>Operações</span><span>/</span><strong id="breadcrumb">Usuários</strong></div>
+        <div class="top-actions">
+          <label class="api-field" title="Endereço base da API"><span class="api-light" id="api-light"></span><input id="api-base" aria-label="Endereço base da API" spellcheck="false"></label>
+          <div class="user-chip" id="user-chip" hidden><span class="avatar" id="avatar">CL</span><div class="user-meta"><div class="user-name" id="user-name"></div><div class="user-state">Sessão informativa</div></div></div>
+          <button class="button button-quiet login-trigger" id="login-toggle" type="button">Entrar</button>
+          <form class="login-strip" id="login-form" hidden>
+            <input name="email" type="email" autocomplete="username" placeholder="E-mail" aria-label="E-mail" required>
+            <input name="senha" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha" required>
+            <button class="button button-dark" type="submit">Entrar</button>
+          </form>
+        </div>
+      </div>
+
+      <section class="page-head">
+        <div><p class="eyebrow">Central de dados / <span id="resource-code">USU</span></p><h1 id="page-title">Usuários</h1><p class="page-desc" id="page-desc">Consulte e mantenha os registros da API.</p></div>
+        <button class="button button-primary" id="create-button" type="button"><span aria-hidden="true">＋</span><span class="button-label">Novo registro</span></button>
+      </section>
+
+      <section class="metrics" aria-label="Resumo">
+        <article class="metric"><div><div class="metric-label">Registros exibidos</div><div class="metric-value" id="count-value">—</div></div><span class="metric-tag">01</span></article>
+        <article class="metric"><div><div class="metric-label">Recurso selecionado</div><div class="metric-value" id="resource-value">Usuários</div></div><span class="metric-tag">API</span></article>
+        <article class="metric"><div><div class="metric-label">Conexão</div><div class="metric-value" id="connection-value">Verificando</div></div><span class="metric-tag" id="connection-tag">···</span></article>
+      </section>
+
+      <section class="data-panel" aria-live="polite">
+        <div class="table-toolbar">
+          <div><div class="table-title" id="table-title">Todos os usuários</div><div class="table-subtitle" id="table-subtitle">Listagem da API</div></div>
+          <div class="table-controls">
+            <label class="search"><span aria-hidden="true">⌕</span><input id="id-search" inputmode="numeric" placeholder="Buscar por ID" aria-label="Buscar por ID"></label>
+            <button class="button button-quiet" id="search-button" type="button">Buscar</button>
+            <button class="button button-quiet" id="refresh-button" type="button" title="Atualizar lista" aria-label="Atualizar lista">↻</button>
+          </div>
+        </div>
+        <div class="status-line" id="status-line" role="status">Conectando à API…</div>
+        <div class="table-wrap"><table><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Recursos da API"></nav>
+
+  <dialog id="record-dialog">
+    <form id="record-form">
+      <div class="dialog-head"><div><h2 id="dialog-title">Novo registro</h2><p id="dialog-description">Preencha os campos para enviar à API.</p></div><button class="dialog-close" type="button" id="dialog-close" aria-label="Fechar">×</button></div>
+      <div class="form-grid" id="form-fields"></div>
+      <div class="dialog-foot"><button class="button button-quiet" type="button" id="cancel-button">Cancelar</button><button class="button button-primary" type="submit" id="save-button">Salvar registro</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script>
+    const resources = {
+      usuario: { label: 'Usuários', endpoint: '/usuario', key: 'usuario', id: 'id_usu', code: 'USU', fields: [
+        ['nome', 'Nome', 'text', true], ['email', 'E-mail', 'email', true], ['senha', 'Senha', 'password', true], ['contato', 'Contato', 'text'], ['genero', 'Gênero', 'text'], ['ativo', 'Ativo', 'boolean']
+      ] },
+      cliente: { label: 'Clientes', endpoint: '/cliente', key: 'clientes', id: 'id_cliente', code: 'CLI', fields: [
+        ['nome', 'Nome', 'text', true], ['email', 'E-mail', 'email', true], ['contato', 'Contato', 'text'], ['ativo', 'Ativo', 'boolean']
+      ] },
+      funcionario: { label: 'Funcionários', endpoint: '/funcionario', key: 'funcionarios', id: 'id_funcionario', code: 'FUN', fields: [
+        ['nome', 'Nome', 'text', true], ['cargo', 'Cargo', 'text', true], ['salario', 'Salário', 'number', true], ['telefone', 'Telefone', 'text'], ['email', 'E-mail', 'email'], ['data_admissao', 'Data de admissão', 'date'], ['ativo', 'Ativo', 'boolean']
+      ] },
+      fornecedores: { label: 'Fornecedores', endpoint: '/fornecedores', key: 'fornecedores', id: 'id_fornecedor', code: 'FOR', fields: [
+        ['nome', 'Nome', 'text', true], ['empresa', 'Empresa', 'text'], ['email', 'E-mail', 'email'], ['telefone', 'Telefone', 'text'], ['cidade', 'Cidade', 'text'], ['estado', 'Estado (UF)', 'text'], ['ativo', 'Ativo', 'boolean']
+      ] },
+      produto: { label: 'Produtos', endpoint: '/produto', key: 'produtos', id: 'id_produto', code: 'PRO', fields: [
+        ['nome', 'Nome', 'text'], ['descricao', 'Descrição', 'text', true], ['preco', 'Preço', 'number', true], ['imagem_produto', 'Imagem (URL)', 'url', true]
+      ] },
+      entrada: { label: 'Entradas', endpoint: '/entrada', key: 'entradas', id: 'id_entrada', code: 'ENT', fields: [
+        ['id_produto', 'ID do produto', 'number', true], ['id_fornecedor', 'ID do fornecedor', 'number', true], ['quantidade', 'Quantidade', 'number', true], ['valor_unitario', 'Valor unitário', 'number', true], ['data_entrada', 'Data de entrada', 'date'], ['observacao', 'Observação', 'text']
+      ] },
+      saida: { label: 'Saídas', endpoint: '/saida', key: 'saidas', id: 'id_saida', code: 'SAI', fields: [
+        ['id_produto', 'ID do produto', 'number', true], ['id_funcionario', 'ID do funcionário', 'number', true], ['quantidade', 'Quantidade', 'number', true], ['valor_unitario', 'Valor unitário', 'number', true], ['data_saida', 'Data de saída', 'date'], ['destino', 'Destino', 'text']
+      ] },
+      pedidos: { label: 'Pedidos', endpoint: '/pedidos', key: 'pedidos', id: 'id_pedido', code: 'PED', fields: [
+        ['status', 'Status', 'boolean'], ['data_pedido', 'Data do pedido', 'date'], ['id_cliente', 'ID do cliente', 'number']
+      ] },
+      'historico-de-precos': { label: 'Histórico de preços', endpoint: '/historico-de-precos', key: 'historico_de_precos', id: 'id_historico_de_precos', code: 'HIS', fields: [
+        ['id_produto', 'ID do produto', 'number'], ['preco', 'Preço', 'number'], ['vigencia', 'Vigência', 'date']
+      ] },
+      logs: { label: 'Logs', endpoint: '/logs', key: 'logs', id: 'id_login', code: 'LOG', fields: [
+        ['usuarios', 'Usuário', 'text'], ['tabela_afetada', 'Tabela afetada', 'text'], ['acao', 'Ação', 'text'], ['registro', 'ID do registro', 'number'], ['data_hora', 'Data e hora', 'datetime-local']
+      ] }
+    };
+
+    const glyphs = { usuario: 'US', cliente: 'CL', funcionario: 'FU', fornecedores: 'FO', produto: 'PR', entrada: 'EN', saida: 'SA', pedidos: 'PE', 'historico-de-precos': 'HP', logs: 'LG' };
+    const state = { resource: 'usuario', rows: [], editingId: null, toastTimer: null };
+    const $ = (selector) => document.querySelector(selector);
+    const apiInput = $('#api-base');
+    const dialog = $('#record-dialog');
+    const statusLine = $('#status-line');
+
+    function getApiBase() {
+      const saved = localStorage.getItem('api-base');
+      if (saved) return saved.replace(/\/$/, '');
+      if (location.protocol === 'file:' || location.port === '5500') return 'http://localhost:5000';
+      return location.origin;
+    }
+
+    apiInput.value = getApiBase();
+    apiInput.addEventListener('change', () => {
+      const value = apiInput.value.trim().replace(/\/$/, '');
+      apiInput.value = value;
+      localStorage.setItem('api-base', value);
+      loadRows();
+    });
+
+    async function apiRequest(path, options = {}) {
+      const response = await fetch(`${apiInput.value.replace(/\/$/, '')}${path}`, {
+        ...options,
+        headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers }
+      });
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json') ? await response.json() : null;
+      if (!response.ok) throw new Error(data?.erro?.mensagem || data?.mensagem || `Falha HTTP ${response.status}`);
+      return data;
+    }
+
+    function setStatus(message, error = false) {
+      statusLine.textContent = message;
+      statusLine.classList.toggle('error', error);
+      $('#api-light').classList.toggle('online', !error);
+      $('#connection-value').textContent = error ? 'Indisponível' : 'Conectada';
+      $('#connection-tag').textContent = error ? 'OFF' : 'ON';
+    }
+
+    function showToast(message, error = false) {
+      const toast = $('#toast');
+      toast.textContent = message;
+      toast.classList.toggle('error', error);
+      toast.hidden = false;
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => { toast.hidden = true; }, 3600);
+    }
+
+    function buildNav() {
+      for (const nav of [$('#desktop-nav'), $('#mobile-nav')]) {
+        nav.replaceChildren();
+        for (const [key, resource] of Object.entries(resources)) {
+          const button = document.createElement('button');
+          button.className = 'nav-item';
+          button.type = 'button';
+          button.dataset.resource = key;
+          const glyph = document.createElement('span');
+          glyph.className = 'nav-glyph';
+          glyph.textContent = glyphs[key];
+          const label = document.createElement('span');
+          label.textContent = resource.label;
+          button.append(glyph, label);
+          button.addEventListener('click', () => selectResource(key));
+          nav.appendChild(button);
+        }
+      }
+    }
+
+    function selectResource(key) {
+      state.resource = key;
+      state.editingId = null;
+      const resource = resources[key];
+      document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.resource === key));
+      $('#breadcrumb').textContent = resource.label;
+      $('#resource-code').textContent = resource.code;
+      $('#page-title').textContent = resource.label;
+      $('#resource-value').textContent = resource.label;
+      $('#table-title').textContent = `Todos: ${resource.label.toLowerCase()}`;
+      $('#table-subtitle').textContent = `API ${resource.endpoint} · CRUD completo`;
+      $('#id-search').value = '';
+      loadRows();
+    }
+
+    function displayValue(field, value) {
+      if (value === null || value === undefined || value === '') return '—';
+      if (field === 'ativo' || field === 'status') {
+        const pill = document.createElement('span');
+        const active = value === true || value === 1 || value === '1';
+        pill.className = `state-pill${active ? '' : ' off'}`;
+        pill.textContent = active ? 'Ativo' : 'Inativo';
+        return pill;
+      }
+      if (typeof value === 'object') return JSON.stringify(value);
+      return String(value);
+    }
+
+    function visibleFields(resource, rows) {
+      const configured = resource.fields.map((field) => field[0]);
+      const actual = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+      return [resource.id, ...configured.filter((field) => actual.includes(field))].filter((field, index, list) => list.indexOf(field) === index).slice(0, 6);
+    }
+
+    function renderRows(rows) {
+      state.rows = rows;
+      $('#count-value').textContent = String(rows.length);
+      const resource = resources[state.resource];
+      const head = $('#table-head');
+      const body = $('#table-body');
+      head.replaceChildren();
+      body.replaceChildren();
+      const fields = visibleFields(resource, rows);
+      const headerRow = document.createElement('tr');
+      for (const field of fields) {
+        const th = document.createElement('th');
+        const definition = resource.fields.find((item) => item[0] === field);
+        th.textContent = field === resource.id ? 'ID' : (definition?.[1] || field.replaceAll('_', ' '));
+        headerRow.appendChild(th);
+      }
+      const actionHeader = document.createElement('th');
+      actionHeader.textContent = 'Ações';
+      headerRow.appendChild(actionHeader);
+      head.appendChild(headerRow);
+
+      if (!rows.length) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = fields.length + 1;
+        cell.className = 'empty';
+        const title = document.createElement('strong');
+        title.textContent = 'Nenhum registro nesta visualização';
+        const subtitle = document.createElement('span');
+        subtitle.textContent = 'Crie um registro ou limpe a busca por ID.';
+        cell.append(title, subtitle);
+        row.appendChild(cell);
+        body.appendChild(row);
+        return;
+      }
+
+      for (const record of rows) {
+        const row = document.createElement('tr');
+        for (const field of fields) {
+          const cell = document.createElement('td');
+          const value = displayValue(field, record[field]);
+          if (value instanceof Node) cell.appendChild(value);
+          else {
+            cell.textContent = value;
+            if (field === resource.id || field.startsWith('id_')) cell.classList.add('mono');
+          }
+          row.appendChild(cell);
+        }
+        const actionCell = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'row-actions';
+        const edit = document.createElement('button');
+        edit.type = 'button'; edit.className = 'icon-button'; edit.title = 'Editar'; edit.setAttribute('aria-label', 'Editar'); edit.textContent = '✎';
+        edit.addEventListener('click', () => openEditor(record));
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.className = 'icon-button delete'; remove.title = 'Excluir'; remove.setAttribute('aria-label', 'Excluir'); remove.textContent = '×';
+        remove.addEventListener('click', () => deleteRecord(record[resource.id]));
+        actions.append(edit, remove);
+        actionCell.appendChild(actions);
+        row.appendChild(actionCell);
+        body.appendChild(row);
+      }
+    }
+
+    async function loadRows(id = '') {
+      const resource = resources[state.resource];
+      setStatus('Carregando dados…');
+      $('#refresh-button').disabled = true;
+      try {
+        const data = await apiRequest(`${resource.endpoint}${id ? `/${encodeURIComponent(id)}` : ''}`);
+        const rows = Array.isArray(data?.[resource.key]) ? data[resource.key] : [];
+        renderRows(rows);
+        setStatus(id ? `${rows.length ? 'Registro encontrado' : 'Nenhum registro encontrado'} · ${resource.id} ${id}` : `${rows.length} registro(s) carregado(s)`);
+      } catch (error) {
+        renderRows([]);
+        setStatus(error.message || 'Não foi possível conectar à API.', true);
+        $('#count-value').textContent = '—';
+      } finally {
+        $('#refresh-button').disabled = false;
+      }
+    }
+
+    function makeField([name, label, type, required], record = {}) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `field${['observacao', 'imagem_produto'].includes(name) ? ' wide' : ''}`;
+      const labelElement = document.createElement('label');
+      labelElement.htmlFor = `field-${name}`;
+      labelElement.textContent = label + (required && !state.editingId ? ' *' : '');
+      let input;
+      if (type === 'boolean') {
+        input = document.createElement('select');
+        for (const [value, text] of [['true', 'Ativo / Sim'], ['false', 'Inativo / Não']]) {
+          const option = document.createElement('option'); option.value = value; option.textContent = text; input.appendChild(option);
+        }
+        input.value = record[name] === false || record[name] === 0 ? 'false' : 'true';
+      } else {
+        input = document.createElement('input');
+        input.type = type;
+        if (type === 'number') input.step = name === 'quantidade' || name.startsWith('id_') ? '1' : '0.01';
+        if (type === 'number' && (name === 'quantidade' || name.startsWith('id_'))) input.min = '1';
+        if (required && !state.editingId) input.required = true;
+        if (name === 'senha' && state.editingId) input.required = false;
+        input.value = record[name] ?? '';
+        input.placeholder = name === 'senha' && state.editingId ? 'Deixe vazio para manter a senha atual' : '';
+      }
+      input.id = `field-${name}`;
+      input.name = name;
+      if (required && !state.editingId && type === 'boolean') input.required = true;
+      wrapper.append(labelElement, input);
+      return wrapper;
+    }
+
+    function openEditor(record = null) {
+      const resource = resources[state.resource];
+      state.editingId = record ? record[resource.id] : null;
+      $('#dialog-title').textContent = record ? `Editar ${resource.label.toLowerCase()}` : `Novo: ${resource.label.toLowerCase()}`;
+      $('#dialog-description').textContent = record ? `Registro ${resource.id} ${state.editingId}. Envie somente os campos alterados.` : 'Preencha os campos e envie para a API.';
+      $('#save-button').textContent = record ? 'Salvar alterações' : 'Criar registro';
+      const fields = $('#form-fields');
+      fields.replaceChildren();
+      for (const definition of resource.fields) fields.appendChild(makeField(definition, record || {}));
+      dialog.showModal();
+    }
+
+    async function saveRecord(event) {
+      event.preventDefault();
+      const resource = resources[state.resource];
+      const formData = new FormData(event.currentTarget);
+      const payload = {};
+      for (const [name, rawValue] of formData.entries()) {
+        if (rawValue === '') continue;
+        const field = resource.fields.find((item) => item[0] === name);
+        if (!field) continue;
+        const type = field[2];
+        if (type === 'boolean') payload[name] = rawValue === 'true';
+        else if (type === 'number') payload[name] = Number(rawValue);
+        else if (type === 'datetime-local') payload[name] = new Date(rawValue).toISOString();
+        else payload[name] = rawValue;
+      }
+      if (state.editingId && resource.fields.some((field) => field[0] === 'senha') && !payload.senha) delete payload.senha;
+      const editingId = state.editingId;
+      const button = $('#save-button');
+      button.disabled = true;
+      try {
+        const path = `${resource.endpoint}${editingId ? `/${encodeURIComponent(editingId)}` : ''}`;
+        await apiRequest(path, { method: editingId ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
+        dialog.close();
+        showToast(editingId ? 'Alterações salvas.' : 'Registro criado.');
+        await loadRows();
+      } catch (error) {
+        showToast(error.message || 'Não foi possível salvar.', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function deleteRecord(id) {
+      const resource = resources[state.resource];
+      if (!confirm(`Excluir o registro ${id} de ${resource.label.toLowerCase()}? Esta ação não pode ser desfeita.`)) return;
+      try {
+        await apiRequest(`${resource.endpoint}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        showToast('Registro excluído.');
+        await loadRows();
+      } catch (error) {
+        showToast(error.message || 'Não foi possível excluir.', true);
+      }
+    }
+
+    async function login(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector('button');
+      const credentials = Object.fromEntries(new FormData(form));
+      button.disabled = true;
+      try {
+        const data = await apiRequest('/usuario/login', { method: 'POST', body: JSON.stringify(credentials) });
+        const usuario = data.usuario || {};
+        $('#user-chip').hidden = false;
+        $('#user-name').textContent = usuario.nome || usuario.email || 'Usuário';
+        $('#avatar').textContent = (usuario.nome || usuario.email || 'US').slice(0, 2).toUpperCase();
+        $('#login-form').hidden = true;
+        $('#login-toggle').hidden = true;
+        form.reset();
+        showToast('Login realizado. Entrada registrada nos logs.');
+      } catch (error) {
+        showToast(error.message || 'Falha ao entrar.', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    buildNav();
+    selectResource('usuario');
+    $('#create-button').addEventListener('click', () => openEditor());
+    $('#refresh-button').addEventListener('click', () => { $('#id-search').value = ''; loadRows(); });
+    $('#search-button').addEventListener('click', () => {
+      const id = $('#id-search').value.trim();
+      if (!id) return loadRows();
+      loadRows(id);
+    });
+    $('#id-search').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); $('#search-button').click(); } });
+    $('#record-form').addEventListener('submit', saveRecord);
+    $('#dialog-close').addEventListener('click', () => dialog.close());
+    $('#cancel-button').addEventListener('click', () => dialog.close());
+    $('#login-toggle').addEventListener('click', () => { $('#login-form').hidden = !$('#login-form').hidden; if (!$('#login-form').hidden) $('#login-form').querySelector('input').focus(); });
+    $('#login-form').addEventListener('submit', login);
+  </script>
+</body>
+</html>

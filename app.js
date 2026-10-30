@@ -33,7 +33,7 @@ app.use(cors({
 
 //3. Definição de Rotas 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/dashboard.html');
 });
 
 app.get('/documentacao', (req, res) => {
