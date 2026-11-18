@@ -39,6 +39,24 @@ model Entrada {
   @@map("entradas")
 }
 
+model Entrega {
+  id_entrega    Int       @id @default(autoincrement())
+  id_pedido     Int       @unique
+  endereco      String    @db.VarChar(200)
+  cidade        String?   @db.VarChar(100)
+  estado        String?   @db.Char(2)
+  cep           String?   @db.VarChar(10)
+  latitude      Float?    @db.Double
+  longitude     Float?    @db.Double
+  status        String    @default("Pendente") @db.VarChar(30)
+  data_entrega  DateTime? @db.Date
+  criado_em     DateTime? @default(now()) @db.Timestamp(0)
+  atualizado_em DateTime? @default(now()) @db.Timestamp(0)
+  pedido        Pedido    @relation(fields: [id_pedido], references: [id_pedido], onDelete: Restrict, onUpdate: Cascade, map: "fk_entregas_pedidos")
+
+  @@map("entregas")
+}
+
 model Fornecedor {
   id_fornecedor Int       @id @default(autoincrement())
   nome          String    @db.VarChar(100)
@@ -101,6 +119,7 @@ model Pedido {
   criado_em    DateTime? @default(now()) @db.Timestamp(0)
   atualizado_em DateTime? @default(now()) @db.Timestamp(0)
   cliente      Cliente?  @relation(fields: [id_cliente], references: [id_cliente], onDelete: SetNull, onUpdate: Cascade, map: "fk_pedidos_clientes")
+  entrega      Entrega?
 
   @@index([id_cliente], map: "fk_pedidos_clientes")
   @@map("pedidos")

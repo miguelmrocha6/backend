@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 
 //1. Dependências e Middlewares
@@ -16,24 +15,26 @@ const routerCliente = require('./routes/routerCliente');
 const routerEntrada = require('./routes/routerEntrada');
 const routerFornecedores = require('./routes/routerFornecedores');
 const routerPedido = require('./routes/routerPedido');
+const routerEntrega = require('./routes/routerEntrega');
 const routerProduto = require('./routes/routerProduto');
 const routerSaida = require('./routes/routerSaida');
 const routerHistoricoDePrecos = require('./routes/routerHistoricoDePrecos');
 const routerLog = require('./routes/routerLog');
-
+const path = require('path');
 
 
 //2. Controle de CORS (Headers & OPTIONS)
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'
+  ]
 }));
 
 
 //3. Definição de Rotas 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/dashboard.html');
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 app.get('/documentacao', (req, res) => {
@@ -46,6 +47,7 @@ app.use('/cliente', routerCliente);
 app.use('/entrada', routerEntrada);
 app.use('/fornecedores', routerFornecedores);
 app.use('/pedidos', routerPedido);
+app.use('/entregas', routerEntrega);
 app.use('/produto', routerProduto);
 app.use('/saida', routerSaida);
 app.use('/historico-de-precos', routerHistoricoDePrecos);

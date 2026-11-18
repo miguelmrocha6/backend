@@ -117,7 +117,21 @@ Exemplo de criacao:
 }
 ```
 
-As consultas de usuarios nao incluem o campo `senha` nas respostas. A API descrita aqui nao implementa autenticacao ou validacao de senha.
+As consultas de usuarios nao incluem o campo `senha` nas respostas. O endpoint `POST /usuario/login` recebe `email` e `senha`, valida a conta e retorna os dados do usuario sem a senha. Em caso de sucesso, registra a entrada na tabela `logs` com a acao `LOGIN`.
+
+Exemplo de login:
+
+```http
+POST /usuario/login
+Content-Type: application/json
+
+{
+  "email": "joao@example.com",
+  "senha": "minha-senha"
+}
+```
+
+O endpoint retorna `200` para credenciais validas, `400` quando faltam campos e `401` quando o e-mail ou a senha sao invalidos. O painel exige login para mostrar sua interface, mas essa verificacao visual nao protege as rotas CRUD da API; o backend ainda precisa de autenticacao/autorizacao para impedir chamadas diretas.
 
 ### Funcionarios
 
@@ -246,6 +260,39 @@ Resposta: propriedade `logs`.
 | `acao` | texto | Nao | Acao registrada. |
 | `registro` | inteiro | Nao | Identificador do registro afetado. |
 | `data_hora` | data e hora | Nao | Momento do evento. |
+
+### Entregas
+
+Base: `/entregas`  
+Resposta de listagem/busca: propriedade `entregas`. Cada entrega pertence a um pedido, e cada pedido pode ter no maximo uma entrega.
+
+| Campo | Tipo | Obrigatorio no POST | Descricao |
+| --- | --- | --- | --- |
+| `id_pedido` | inteiro | Sim | Pedido existente que sera entregue. |
+| `endereco` | texto | Sim | Endereco de destino (ate 200 caracteres). |
+| `cidade` | texto | Nao | Cidade de destino. |
+| `estado` | texto de 2 caracteres | Nao | Sigla do estado. |
+| `cep` | texto | Nao | CEP do destino. |
+| `latitude` | numero decimal | Nao | Latitude selecionada no mapa Leaflet. |
+| `longitude` | numero decimal | Nao | Longitude selecionada no mapa Leaflet. |
+| `status` | texto | Nao | `Pendente`, `Em rota`, `Entregue` ou `Cancelada`; padrao `Pendente`. |
+| `data_entrega` | data | Nao | Data da entrega. |
+
+Exemplo de solicitacao:
+
+```json
+{
+  "id_pedido": 12,
+  "endereco": "Rua das Flores, 120",
+  "cidade": "Araguaina",
+  "estado": "TO",
+  "cep": "77800-000",
+  "latitude": -7.192,
+  "longitude": -48.207
+}
+```
+
+`PATCH /entregas/:id` atualiza os campos enviados, incluindo o status para registrar o andamento. `GET /entregas/relatorio.pdf` baixa um PDF com os dados e o cliente relacionado. A tabela precisa ser criada antes do uso da API, aplicando `prisma/migrations/20261105000000_create_entregas/migration.sql` no banco MySQL.
 
 ## 4. Formato das respostas
 
