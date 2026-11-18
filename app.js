@@ -34,7 +34,7 @@ app.use(cors({
 
 //3. Definição de Rotas 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/documentacao', (req, res) => {
